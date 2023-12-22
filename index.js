@@ -11,7 +11,7 @@ app.use(express.json())
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jtchhsy.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -30,7 +30,7 @@ async function run() {
 
 
     const taskCollection = client.db("FlowtaskDB").collection("tasks");
-    const userCollection = client.db("ShopwiseDB").collection("users");
+    const userCollection = client.db("FlowtaskDB").collection("users");
 
     // middleware
     const verifyToken = (req, res, next)=>{
@@ -55,6 +55,31 @@ async function run() {
           expiresIn: '1h'
         })
         res.send({token})
+    })
+
+    // todo API
+    app.post('/tasks',verifyToken, async(req, res)=>{
+      const task = req.body  
+      const result = await taskCollection.insertOne(task)
+      res.send(result)
+    })
+    app.get('/tasks/:email',verifyToken,  async(req, res)=>{
+      const email=req.params.email;
+      const filter = {email: email}
+      const result = await taskCollection.find(filter).toArray()
+      res.send(result)
+    })
+    app.patch('/tasks/:id',verifyToken,  async(req, res)=>{
+      const task = req.body
+      const id = req.params.id
+      const filter= {_id: new ObjectId(id)}
+      const updatedtask = {
+        $set:{
+          status: task.status,
+        }
+      }
+      const result = await taskCollection.updateOne(filter, updatedtask)
+      res.send(result)
     })
 
     // user api
