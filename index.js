@@ -69,6 +69,36 @@ async function run() {
       const result = await taskCollection.find(filter).toArray()
       res.send(result)
     })
+    app.get('/tasks/:id',verifyToken,  async(req, res)=>{
+      const id=req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const result = await taskCollection.findOne(filter)
+      res.send(result)
+    })
+    app.patch('/task/:id',verifyToken,  async(req, res)=>{
+      const task = req.body
+      const id = req.params.id
+      const filter= {_id: new ObjectId(id)}
+      const updatedtask = {
+        $set:{
+          title: task.title,
+          description: task.description,
+          deadline: task.deadline,
+          priority: task.priority,
+          status: task.status,
+          email:task.email
+          
+        }
+      }
+      const result = await taskCollection.updateOne(filter, updatedtask)
+      res.send(result)
+    })
+    app.delete('/tasks/:id',verifyToken,  async(req, res)=>{
+      const id = req.params.id
+      const query = {_id: new ObjectId(id)}
+        const result = await taskCollection.deleteOne(query)
+        res.send(result)
+    })
     app.patch('/tasks/:id',verifyToken,  async(req, res)=>{
       const task = req.body
       const id = req.params.id
@@ -89,6 +119,10 @@ async function run() {
         const result = await userCollection.findOne(query)
         res.send(result)
     })
+    app.get('/users', async(req, res)=>{
+        const result = await userCollection.find().toArray()
+        res.send(result)
+    })
     
     app.post('/users', async(req, res)=>{
         const user = req.body
@@ -103,8 +137,8 @@ async function run() {
     })
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  //   await client.db("admin").command({ ping: 1 });
+  //   console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
